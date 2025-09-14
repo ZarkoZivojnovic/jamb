@@ -1,0 +1,32 @@
+---
+import { allColumns } from '@/config'
+
+export interface Props {
+  sectionNumber: 1 | 2 | 3
+}
+
+const { sectionNumber } = Astro.props
+---
+
+<tr class={`sum${sectionNumber}`}>
+  <td class='category sum'>∑<sup>{sectionNumber}</sup></td>
+  {
+    allColumns.map(() => {
+      return <td class='sum' />
+    })
+  }
+</tr>
+
+<style lang='scss'>
+  .sum {
+    background-color: var(--color-3);
+    font-size: var(--font-l);
+    font-weight: bold;
+    color: var(--color-1);
+  }
+
+  sup {
+    font-size: 10px;
+    padding-left: 2px;
+  }
+</style>

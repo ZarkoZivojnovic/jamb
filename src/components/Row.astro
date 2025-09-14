@@ -1,0 +1,95 @@
+---
+import { allColumns } from '@/config'
+import type { RowType } from '@/types'
+
+export interface Props {
+  row: RowType
+}
+
+const { row } = Astro.props
+const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
+---
+
+<tr data-row={row}>
+  <td class={rowClass}>{row}</td>
+  {
+    allColumns.map(column => {
+      const showArrowDown = (row === '1' && column === 'top-bottom') || (row === 'min' && column === 'min-max')
+      const showArrowUp = (row === 'yamb' && column === 'top-bottom') || (row === 'max' && column === 'min-max')
+      let className = 'cell'
+      if (showArrowDown) className += ' arrow-down'
+      if (showArrowUp) className += ' arrow-up'
+      if ((row === 'min' || row === 'max') && (column === 'min-max' || column === 'top-bottom')) className += ` ${row}`
+
+      return <td class={className} data-row={row} data-column={column} />
+    })
+  }
+</tr>
+
+<style lang='scss'>
+  .category {
+    font-size: var(--font-s);
+    font-weight: bolder;
+    text-align: center;
+    background-color: var(--color-4);
+    color: var(--color-1);
+    width: 55px;
+  }
+
+  .category.number {
+    font-size: var(--font-m);
+  }
+
+  .cell {
+    position: relative;
+    cursor: pointer;
+    background-color: var(--color-5);
+    font-size: 18px;
+    color: var(--color-text);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cell.min {
+    border-top: 2px solid var(--color-2);
+  }
+
+  .cell.max {
+    border-bottom: 2px solid var(--color-2);
+  }
+
+  .cell.arrow-up:before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-image: url('../assets/up.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    bottom: 0;
+    right: 2px;
+
+    @media (prefers-color-scheme: dark) {
+      filter: invert(1);
+    }
+  }
+
+  .cell.arrow-down:before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-image: url('../assets/down.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    top: 0;
+    right: 2px;
+
+    @media (prefers-color-scheme: dark) {
+      filter: invert(1);
+    }
+  }
+</style>

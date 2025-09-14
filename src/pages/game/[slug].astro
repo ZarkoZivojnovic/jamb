@@ -1,0 +1,37 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro'
+import Board from '@/components/Board.astro'
+import { getGame } from '@/games'
+
+const { slug } = Astro.params
+
+if (!slug) {
+  return Astro.redirect('/')
+}
+
+const code = slug.toLowerCase()
+const showBoard = getGame(code)
+---
+
+<MainLayout {code}>
+  {
+    showBoard ? (
+      <Board code={code} />
+    ) : (
+      <div>
+        Game not found.
+        <div>
+          <a href='/'>Go to home page</a>
+        </div>
+      </div>
+    )
+  }
+</MainLayout>
+
+<style lang='scss'>
+  div,
+  a {
+    text-align: center;
+    color: var(--color-text);
+  }
+</style>

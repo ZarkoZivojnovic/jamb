@@ -1,0 +1,30 @@
+---
+import Icon from '@/components/Icon.astro'
+import type { ColumnType } from '@/types'
+import { columnIconMapping } from '@/config'
+
+export interface Props {
+  columns: ColumnType[]
+}
+
+const { columns } = Astro.props
+---
+
+<thead>
+  <tr class='header-row'>
+    <th></th>
+    {
+      columns.map(column => {
+        const icon = columnIconMapping[column]
+        return <th>{icon ? <Icon icon={icon} /> : column}</th>
+      })
+    }
+  </tr>
+</thead>
+
+<style lang='scss'>
+  .header-row th {
+    font-size: var(--font-m);
+    background-color: var(--color-3);
+  }
+</style>

@@ -1,0 +1,54 @@
+---
+import type { IconType } from '@/types'
+
+export interface Props {
+  icon: IconType
+}
+
+const { icon } = Astro.props
+---
+
+{
+  icon === 'min-max' && (
+    <svg height='16' width='16' version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 425 425' xml:space='preserve'>
+      <g>
+        <polygon fill='var(--color-1)' points='212.5,0 19.371,192.5 405.629,192.5 	' />
+        <polygon fill='var(--color-1)' points='212.5,425 405.629,232.5 19.371,232.5 	' />
+      </g>
+    </svg>
+  )
+}
+{
+  icon === 'top-bottom' && (
+    <svg height='16' width='16' version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 425 425' xml:space='preserve'>
+      <g>
+        <polygon fill='var(--color-1)' points='212.5,192.5 405.629,0 19.371,0' />
+        <polygon fill='var(--color-1)' points='212.5,232.5 19.371,425 405.629,425' />
+      </g>
+    </svg>
+  )
+}
+{
+  icon === 'down' && (
+    <svg height='16' width='16' version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 386.257 386.257' xml:space='preserve'>
+      <polygon fill='var(--color-1)' points='0,96.879 193.129,289.379 386.257,96.879' />
+    </svg>
+  )
+}
+{
+  icon === 'free' && (
+    <svg height='16' width='16' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 477.427 477.427' xml:space='preserve'>
+      <g>
+        <polygon fill='var(--color-1)' points='160,20 95,20 95,370 20,370 128.289,477.427 236,370 160,370' />
+        <polygon fill='var(--color-1)' points='457,120 349.138,10 241,119 310,120 310,477 379,477 379,120' />
+      </g>
+    </svg>
+  )
+}
+{
+  icon === 'up' && (
+    <svg height='16' width='16' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 386.257 386.257' xml:space='preserve'>
+      <polygon fill='var(--color-1)' points='193.129,96.879 0,289.379 386.257,289.379' />
+    </svg>
+  )
+}

@@ -1,0 +1,145 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro'
+---
+
+<MainLayout>
+  <div>
+    <form>
+      <label class='username-wrapper'>
+        <input name='username' type='text' placeholder='username' minlength='3' maxlength='15' />
+        <button class='_button save-username' type='submit'>Save</button>
+        <button class='_button cancel-username' type='reset'>Cancel</button>
+      </label>
+    </form>
+    <span class='username-info'>Your username:</span>
+    <span class='username-preview'></span>
+    <div class='username-actions'>
+      <button class='edit-username'>Edit</button>
+      <button class='remove-username'>Remove</button>
+    </div>
+  </div>
+  <div class='game-actions'>
+    <button class='_button start-game' disabled>Start game</button>
+    <button class='_button join-game' disabled>Join game</button>
+  </div>
+  <div class='choose-columns'></div>
+</MainLayout>
+
+<style lang='scss'>
+  div {
+    width: 100%;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--color-text);
+    height: 250px;
+  }
+
+  input[name='username'] {
+    height: 40px;
+    width: 200px;
+    font-size: var(--font-l);
+    padding: 0 10px;
+    text-align: right;
+  }
+
+  .save-username,
+  .cancel-username {
+    width: 80px;
+    height: 40px;
+  }
+
+  .edit-username,
+  .remove-username {
+    border-bottom: 1px solid var(--color-text);
+  }
+
+  .edit-username {
+    display: block;
+  }
+
+  .username-actions {
+    flex-direction: row;
+  }
+
+  .username-preview {
+    font-size: var(--font-l);
+    font-weight: bold;
+    color: var(--color-text);
+  }
+
+  .game-actions {
+    flex-direction: row;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  /* implementation needed */
+  .choose-columns {
+    display: none;
+  }
+</style>
+
+<script>
+  import { initUsernameHandlers, getUsername } from '@/helpers/usernameHelpers'
+  import { apiCall, errorIn } from '@/helpers/apiHelpers'
+  import { allColumns } from '@/config'
+
+  const startGameButton = document.querySelector<HTMLElement>('.start-game')
+  const joinGameButton = document.querySelector<HTMLElement>('.join-game')
+
+  initUsernameHandlers(startGameButton, joinGameButton)
+
+  startGameButton?.addEventListener('click', async () => {
+    const username = getUsername()
+    if (!username) {
+      alert('Please enter a username first')
+      return
+    }
+
+    const code = randomString(6)
+    // TODO: select a columns you want to play
+    const res = await apiCall('new-game', { creator: username, code, columns: allColumns })
+
+    if (errorIn(res)) {
+      alert(res.error)
+      return
+    }
+
+    window.location.href = `/game/${code}`
+  })
+
+  joinGameButton?.addEventListener('click', async () => {
+    const gameCode = prompt('Enter game code')?.toLowerCase()
+    if (!gameCode || gameCode.length !== 6) {
+      // check if game code is valid
+      alert('Invalid game code. Please enter a valid game code.')
+      return
+    }
+
+    const username = getUsername()
+    if (!username) {
+      alert('Please enter a username first')
+      return
+    }
+
+    const res = await apiCall('join-game', { code: gameCode, player: username })
+    if (errorIn(res)) {
+      alert(res.error)
+      return
+    }
+
+    window.location.href = `/game/${gameCode}`
+  })
+
+  function randomString(length: number) {
+    return Math.random()
+      .toString(36)
+      .substring(2, length + 2)
+  }
+</script>

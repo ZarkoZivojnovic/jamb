@@ -1,0 +1,495 @@
+---
+import Row from './Row.astro'
+import { allColumns, allRows } from '../config'
+import SumRow from './SumRow.astro'
+import BoardHead from './BoardHead.astro'
+
+export interface Props {
+  code: string
+}
+
+const { code } = Astro.props
+const firstSection = allRows.slice(0, 6)
+const secondSection = allRows.slice(6, 8)
+const thirdSection = allRows.slice(8, 13)
+---
+
+<table class='jamb-board' data-code={code}>
+  <BoardHead columns={allColumns} />
+  <tbody>
+    {firstSection.map(row => <Row row={row} />)}
+    <SumRow sectionNumber={1} />
+    {secondSection.map(row => <Row row={row} />)}
+    <SumRow sectionNumber={2} />
+    {thirdSection.map(row => <Row row={row} />)}
+    <SumRow sectionNumber={3} />
+    <tr>
+      <td colspan='11'><div class='sum total' id='grand-total' style='visibility: hidden'>0</div></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class='buttons'>
+  <button class='_button' id='reset-board'>RESET</button>
+  <button class='_button' id='toggle-total'>SHOW TOTAL</button>
+  <!--implement server to fetch the other players' scores-->
+  <!--<button onclick="endGame()">End Game</button>-->
+</div>
+
+<div id='menu-wrapper'>
+  <div class='clear-button-wrapper'>
+    <button class='clear-button'>CLEAR</button>
+  </div>
+  <div id='options-menu' class='options-menu'></div>
+</div>
+
+<style lang='scss'>
+  .jamb-board {
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 2px solid var(--color-2);
+    background-clip: padding-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    will-change: contents;
+  }
+
+  :global(th),
+  :global(td) {
+    border: 1px solid var(--color-2);
+    padding: 2px;
+    text-align: center;
+    height: 35px;
+    width: 35px;
+    min-width: 35px;
+
+    @media (max-width: 420px) {
+      height: 32px;
+      width: 32px;
+      min-width: 32px;
+    }
+
+    @media (max-width: 375px) {
+      height: 28px;
+      width: 28px;
+      min-width: 28px;
+    }
+  }
+
+  :global(th) {
+    color: var(--color-1);
+  }
+
+  #grand-total {
+    color: var(--color-1);
+    font-weight: bold;
+    font-size: var(--font-l);
+    background-color: var(--color-5);
+
+    sub,
+    :global(sub) {
+      font-size: 10px;
+    }
+
+    sup,
+    :global(sup) {
+      font-size: 8px;
+      padding: 0;
+    }
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  #menu-wrapper {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+
+    .clear-button-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 220px;
+      background-color: var(--color-5);
+      font-weight: bold;
+      padding: 20px 10px 10px;
+      z-index: 100;
+    }
+
+    .clear-button {
+      width: 100%;
+      height: 55px;
+      padding: 0;
+      font-size: 18px;
+      background-color: var(--color-5);
+      color: var(--color-text);
+      border: 1px solid var(--color-1);
+      border-radius: 0;
+      text-align: center;
+    }
+
+    :global(.option-item) {
+      width: 55px;
+      height: 55px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid var(--color-1);
+      padding: 5px;
+      font-size: 24px;
+      color: var(--color-text);
+      text-align: center;
+      cursor: pointer;
+      background-color: var(--color-5);
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 5px;
+    }
+
+    .options-menu {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      z-index: 10;
+      background-color: var(--color-5);
+      width: 220px;
+      padding: 20px 10px;
+      justify-content: space-around;
+    }
+  }
+</style>
+
+<script>
+  import type { RowType } from '@/types'
+  import { fieldOptions } from '@/config'
+
+  const allCells = document.querySelectorAll<HTMLElement>('.cell')
+
+  allCells.forEach(cell => {
+    cell.addEventListener('click', function () {
+      const row = cell.getAttribute('data-row')
+      if (row) {
+        showOptions(cell, row as RowType)
+      }
+    })
+  })
+
+  const clearButton = document.querySelector('.clear-button')
+  clearButton?.addEventListener('click', resetCurrentCell)
+
+  const resetBoardButton = document.getElementById('reset-board')
+  resetBoardButton?.addEventListener('click', resetBoard)
+
+  const toggleTotalButton = document.getElementById('toggle-total')
+  toggleTotalButton?.addEventListener('click', toggleTotal)
+
+  let currentCell: HTMLElement | null = null
+
+  function showOptions(cell: HTMLElement, row: RowType) {
+    if (currentCell) {
+      clearCurrentCell()
+    }
+
+    const menuWrapper = document.getElementById('menu-wrapper')
+    const menu = document.querySelector('#options-menu')
+
+    currentCell = cell
+    currentCell!.style.backgroundColor = 'lightgray'
+
+    closeMenu()
+    menu!.innerHTML = ''
+    ;(fieldOptions[row] || []).forEach(value => {
+      const item = document.createElement('div')
+      item.className = 'option-item'
+      item.textContent = value.toString()
+      item.onclick = function (event) {
+        selectOption(value.toString())
+        event.stopPropagation()
+      }
+      menu!.appendChild(item)
+    })
+
+    showMenu()
+    menuWrapper!.addEventListener('click', () => {
+      closeMenu()
+      clearCurrentCell()
+    })
+  }
+
+  function clearCurrentCell() {
+    if (!currentCell) return
+    currentCell.style.backgroundColor = 'var(--color-5)'
+    currentCell = null
+    updateSums()
+  }
+
+  function resetCurrentCell() {
+    if (!currentCell) return
+    currentCell.textContent = ''
+    clearCurrentCell()
+    if (typeof saveBoardState === 'function') {
+      saveBoardState()
+    }
+  }
+
+  function selectOption(value: string) {
+    if (currentCell) {
+      currentCell.textContent = value === 'x' ? '' : value
+      closeMenu()
+      updateSums()
+      if (typeof saveBoardState === 'function') {
+        saveBoardState()
+      }
+    }
+    clearCurrentCell()
+  }
+
+  function closeMenu() {
+    const menuWrapper = document.getElementById('menu-wrapper')
+    menuWrapper!.style.display = 'none'
+  }
+
+  function showMenu() {
+    const menuWrapper = document.getElementById('menu-wrapper')
+    menuWrapper!.style.display = 'flex'
+  }
+
+  function updateSums() {
+    // Update row sums for numbers section (1-6)
+    for (let colIndex = 1; colIndex <= 10; colIndex++) {
+      let colSum = 0
+      for (let rowIndex = 1; rowIndex <= 6; rowIndex++) {
+        const cell = document.querySelector(`.jamb-board tbody tr:nth-child(${rowIndex}) td:nth-child(${colIndex + 1})`)
+        if (cell && cell.textContent) {
+          const value = parseInt(cell.textContent)
+          if (!isNaN(value)) {
+            colSum += value
+          }
+        }
+      }
+
+      // Add bonus of 30 if sum is 60 or greater
+      if (colSum >= 60) {
+        colSum += 30
+      }
+
+      // Update first sum row
+      const firstSumCell = document.querySelector(`.jamb-board tbody tr:nth-child(7) td:nth-child(${colIndex + 1})`)
+      if (firstSumCell) {
+        firstSumCell.textContent = colSum > 0 ? colSum.toString() : ''
+      }
+    }
+
+    // Update row sums for MAX/MIN section
+    for (let colIndex = 1; colIndex <= 10; colIndex++) {
+      // Get MAX value
+      const maxCell = document.querySelector(`.jamb-board tbody tr:nth-child(8) td:nth-child(${colIndex + 1})`)
+      let maxValue = 0
+      if (maxCell && maxCell.textContent) {
+        maxValue = parseInt(maxCell.textContent)
+        if (isNaN(maxValue)) maxValue = 0
+      }
+
+      // Get MIN value
+      const minCell = document.querySelector(`.jamb-board tbody tr:nth-child(9) td:nth-child(${colIndex + 1})`)
+      let minValue = 0
+      if (minCell && minCell.textContent) {
+        minValue = parseInt(minCell.textContent)
+        if (isNaN(minValue)) minValue = 0
+      }
+
+      // Get the value from the "1" row (ones)
+      const onesCell = document.querySelector(`.jamb-board tbody tr:nth-child(1) td:nth-child(${colIndex + 1})`)
+      let onesValue = 0
+      if (onesCell && onesCell.textContent) {
+        onesValue = parseInt(onesCell.textContent)
+        if (isNaN(onesValue)) onesValue = 0
+      }
+
+      // Calculate (MAX-MIN) * ones
+      let result = 0
+      if (maxValue > 0 && minValue > 0 && onesValue > 0) {
+        result = (maxValue - minValue) * onesValue
+      }
+
+      // Update second sum row
+      const secondSumCell = document.querySelector(`.jamb-board tbody tr:nth-child(10) td:nth-child(${colIndex + 1})`)
+      if (secondSumCell) {
+        secondSumCell.textContent = result > 0 ? result.toString() : ''
+      }
+    }
+
+    // Update row sums for KENTA-YAMB section
+    for (let colIndex = 1; colIndex <= 10; colIndex++) {
+      let colSum = 0
+      for (let rowIndex = 11; rowIndex <= 15; rowIndex++) {
+        const cell = document.querySelector(`.jamb-board tbody tr:nth-child(${rowIndex}) td:nth-child(${colIndex + 1})`)
+        if (cell && cell.textContent) {
+          const value = parseInt(cell.textContent)
+          if (!isNaN(value)) {
+            colSum += value
+          }
+        }
+      }
+      // Update third sum row
+      const thirdSumCell = document.querySelector(`.jamb-board tbody tr:nth-child(16) td:nth-child(${colIndex + 1})`)
+      if (thirdSumCell) {
+        thirdSumCell.textContent = colSum > 0 ? colSum.toString() : ''
+      }
+    }
+
+    let sum1 = 0
+    let sum2 = 0
+    let sum3 = 0
+
+    const sumRows = document.querySelectorAll('tr[class^="sum"]')
+
+    sumRows.forEach((row, rowIndex) => {
+      const cells = row.querySelectorAll('td.sum')
+
+      cells.forEach(cell => {
+        const value = cell.textContent ? parseInt(cell.textContent) : 0
+        if (!isNaN(value)) {
+          if (rowIndex === 0) {
+            sum1 += value
+          } else if (rowIndex === 1) {
+            sum2 += value
+          } else if (rowIndex === 2) {
+            sum3 += value
+          }
+        }
+      })
+    })
+
+    const grandTotal = sum1 + sum2 + sum3
+    document.getElementById('grand-total')!.innerHTML =
+      `${sum1}<sub>∑<sup>1</sup></sub>+ ${sum2}<sub>∑<sup>2</sup></sub>+ ${sum3}<sub>∑<sup>3</sup></sub> = ${grandTotal} <sub>total</sub>`
+  }
+
+  function resetBoard() {
+    if (confirm('Are you sure you want to reset the board?')) {
+      // Clear all editable cells
+      const cells = document.querySelectorAll('.cell')
+      cells.forEach(cell => {
+        cell.textContent = ''
+      })
+
+      // Clear all sum cells
+      const sumCells = document.querySelectorAll('.sum')
+      sumCells.forEach(cell => {
+        // Skip first cells in rows (category names)
+        if (!cell.classList.contains('category')) {
+          cell.textContent = ''
+        }
+      })
+
+      // Reset grand total
+      document.getElementById('grand-total')!.innerHTML = '0'
+
+      if (typeof clearBoardState === 'function') {
+        clearBoardState()
+      }
+    }
+  }
+
+  function toggleTotal() {
+    const grandTotal = document.getElementById('grand-total')
+    const isVisible = grandTotal!.style.visibility === 'visible'
+    grandTotal!.style.visibility = isVisible ? 'hidden' : 'visible'
+    document.getElementById('toggle-total')!.textContent = isVisible ? 'SHOW TOTAL' : 'HIDE TOTAL'
+  }
+
+  // -------------------- Persistence --------------------
+  const board = document.querySelector<HTMLElement>('.jamb-board')
+  const { code } = board!.dataset
+  const STORAGE_KEY = `jamb-board-state-${code}`
+
+  function assignCellPositions() {
+    const cells = document.querySelectorAll<HTMLElement>('.cell')
+    cells.forEach((cell, index) => {
+      cell.dataset.pos = String(index)
+    })
+  }
+
+  function saveBoardState() {
+    try {
+      const cells = document.querySelectorAll<HTMLElement>('.cell')
+      const data: Record<string, string> = {}
+      cells.forEach(cell => {
+        const pos = cell.dataset.pos
+        if (!pos) return
+        const value = (cell.textContent || '').trim()
+        if (value !== '') {
+          data[pos] = value
+        }
+      })
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cells: data }))
+    } catch (e) {
+      // Fail silently; persistence shouldn't break gameplay
+      console.error('Failed to save board state', e)
+    }
+  }
+
+  function loadBoardState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : null
+      const cells = document.querySelectorAll<HTMLElement>('.cell')
+      // Clear everything first
+      cells.forEach(cell => {
+        cell.textContent = ''
+      })
+      if (parsed && parsed.cells) {
+        cells.forEach(cell => {
+          const pos = cell.dataset.pos
+          if (pos && parsed.cells[pos] !== undefined) {
+            cell.textContent = String(parsed.cells[pos])
+          }
+        })
+      }
+    } catch (e) {
+      console.warn('Failed to load board state; clearing it', e)
+      clearBoardState()
+    }
+  }
+
+  function clearBoardState() {
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch (e) {
+      console.error('Failed to clear board state', e)
+    }
+  }
+
+  // Initialize persistence on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      assignCellPositions()
+      loadBoardState()
+      updateSums()
+    })
+  } else {
+    // Document already loaded
+    assignCellPositions()
+    loadBoardState()
+    updateSums()
+  }
+</script>

@@ -1,0 +1,62 @@
+body {
+  --color-1: #112230;
+  --color-2: #67999c;
+  --color-3: #afe4e9;
+  --color-4: #d3f4fd;
+  --color-5: #f8faff;
+  --color-text: #09121d;
+  --color-white: #fff;
+
+  --font-xs: 10px;
+  --font-s: 14px;
+  --font-m: 16px;
+  --font-l: 18px;
+
+  @media (prefers-color-scheme: dark) {
+    --color-1: #dbdbdb;
+    --color-2: #262626;
+    --color-3: #1d1d1d;
+    --color-4: #1f1f1f;
+    --color-5: #181818;
+    --color-text: #fafdff;
+    --color-white: #fff;
+  }
+
+  font-family: 'Roboto', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box !important;
+}
+
+/* Prevent focus rings from showing on tap for touch devices while keeping keyboard focus on desktop */
+@media (hover: none) and (pointer: coarse) {
+  *:focus,
+  *:focus-visible {
+    outline: none !important;
+  }
+}
+
+button {
+  all: unset;
+  cursor: pointer;
+}
+
+._button {
+  width: 150px;
+  height: 50px;
+  padding: 6px 10px;
+  background-color: var(--color-2);
+  color: var(--color-white);
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+}
+
+._button:disabled {
+  background-color: var(--color-4);
+  color: var(--color-3);
+  cursor: auto;
+}

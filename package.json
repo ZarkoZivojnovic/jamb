@@ -1,0 +1,27 @@
+{
+  "name": "jamb-astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint ./src --ext .ts,.astro",
+    "format": "npx prettier --log-level warn --write 'src/**/*.{astro,css,ts}'",
+    "tsc": "tsc --project tsconfig.tsc.json"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.4.3",
+    "astro": "^5.13.7",
+    "sass": "^1.92.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-astro": "^1.3.1",
+    "prettier": "^3.6.2",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

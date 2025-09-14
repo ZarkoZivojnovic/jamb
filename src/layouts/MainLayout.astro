@@ -1,0 +1,72 @@
+---
+interface Props {
+  code?: string
+}
+
+const isHome = Astro.url.pathname === '/'
+const { code } = Astro.props
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel='icon' type='image/png' href='/assets/favicon.png' />
+    <title>Jamb</title>
+    <style is:global>
+      @import '../global.css';
+    </style>
+  </head>
+  <body>
+    <header>
+      {
+        !isHome ? (
+          <a href='/' class='home-link'>
+            ⌂
+          </a>
+        ) : null
+      }
+      {code ? <span class='code'>game code: {code.toUpperCase()}</span> : null}
+    </header>
+    <slot />
+  </body>
+</html>
+
+<style>
+  body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-5);
+  }
+
+  header {
+    height: 55px;
+    background-color: var(--color-2);
+    padding: 2px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 40px;
+
+    @media (max-width: 400px) {
+      margin-bottom: 20px;
+    }
+  }
+
+  .code {
+    font-weight: bold;
+    color: var(--color-white);
+  }
+
+  .home-link {
+    text-decoration: none;
+    font-size: 40px;
+    color: var(--color-white);
+  }
+</style>
