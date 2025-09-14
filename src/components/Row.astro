@@ -7,19 +7,21 @@ export interface Props {
 }
 
 const { row } = Astro.props
-const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
+let rowClass = isNaN(Number(row)) ? 'row' : 'row number'
+rowClass += ` row-${row}`
 ---
 
 <tr data-row={row}>
-  <td class={rowClass}>{row}</td>
+  <td class={rowClass} data-row={row}>{row}</td>
   {
     allColumns.map(column => {
-      const showArrowDown = (row === '1' && column === 'top-bottom') || (row === 'min' && column === 'min-max')
-      const showArrowUp = (row === 'yamb' && column === 'top-bottom') || (row === 'max' && column === 'min-max')
-      let className = 'cell'
+      const showArrowDown = (row === '1' && column === 'down') || (row === '1' && column === 'top-bottom') || (row === 'min' && column === 'min-max')
+      const showArrowUp = (row === 'yamb' && column === 'up') || (row === 'yamb' && column === 'top-bottom') || (row === 'max' && column === 'min-max')
+      let className = `cell column-${column} row-${row}`
       if (showArrowDown) className += ' arrow-down'
       if (showArrowUp) className += ' arrow-up'
-      if ((row === 'min' || row === 'max') && (column === 'min-max' || column === 'top-bottom')) className += ` ${row}`
+      if ((row === 'min' || row === 'max') && (column === 'min-max' || column === 'top-bottom'))
+        className += ` ${row === 'min' ? 'top-border' : 'bottom-border'}`
 
       return <td class={className} data-row={row} data-column={column} />
     })
@@ -27,17 +29,48 @@ const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
 </tr>
 
 <style lang='scss'>
-  .category {
+  td.row {
     font-size: var(--font-s);
     font-weight: bolder;
     text-align: center;
     background-color: var(--color-4);
     color: var(--color-1);
     width: 55px;
+    position: relative;
   }
 
-  .category.number {
+  td.row.number {
     font-size: var(--font-m);
+  }
+
+  .row.row-triling:before,
+  .row.row-ful:before,
+  .row.row-kare:before,
+  .row.row-yamb:before {
+    font-size: 10px;
+    color: var(--color-1);
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .row.row-triling:before {
+    content: '+20';
+  }
+
+  .row.row-ful:before {
+    content: '+30';
+  }
+
+  .row.row-kare:before {
+    content: '+40';
+  }
+
+  .row.row-yamb:before {
+    content: '+50';
   }
 
   .cell {
@@ -49,12 +82,12 @@ const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
     -webkit-tap-highlight-color: transparent;
   }
 
-  .cell.min {
-    border-top: 2px solid var(--color-2);
+  .cell.top-border {
+    border-top: 2px solid var(--color-border);
   }
 
-  .cell.max {
-    border-bottom: 2px solid var(--color-2);
+  .cell.bottom-border {
+    border-bottom: 2px solid var(--color-border);
   }
 
   .cell.arrow-up:before {
@@ -69,10 +102,10 @@ const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
     position: absolute;
     bottom: 0;
     right: 2px;
+  }
 
-    @media (prefers-color-scheme: dark) {
-      filter: invert(1);
-    }
+  :global(.dark-mode) .cell.arrow-up:before {
+    filter: invert(1);
   }
 
   .cell.arrow-down:before {
@@ -87,9 +120,9 @@ const rowClass = isNaN(Number(row)) ? 'category' : 'category number'
     position: absolute;
     top: 0;
     right: 2px;
+  }
 
-    @media (prefers-color-scheme: dark) {
-      filter: invert(1);
-    }
+  :global(.dark-mode) .cell.arrow-down:before {
+    filter: invert(1);
   }
 </style>

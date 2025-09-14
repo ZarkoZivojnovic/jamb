@@ -1,8 +1,8 @@
 ---
-import Row from './Row.astro'
-import { allColumns, allRows } from '../config'
-import SumRow from './SumRow.astro'
-import BoardHead from './BoardHead.astro'
+import { allColumns, allRows } from '@/config'
+import Row from '@/components/Row.astro'
+import SumRow from '@/components/SumRow.astro'
+import BoardHead from '@/components/BoardHead.astro'
 
 export interface Props {
   code: string
@@ -30,15 +30,13 @@ const thirdSection = allRows.slice(8, 13)
 </table>
 
 <div class='buttons'>
-  <button class='_button' id='reset-board'>RESET</button>
-  <button class='_button' id='toggle-total'>SHOW TOTAL</button>
-  <!--implement server to fetch the other players' scores-->
-  <!--<button onclick="endGame()">End Game</button>-->
+  <button class='_button' id='reset-board'>Reset</button>
+  <button class='_button' id='toggle-total'>Show Total</button>
 </div>
 
 <div id='menu-wrapper'>
   <div class='clear-button-wrapper'>
-    <button class='clear-button'>CLEAR</button>
+    <button class='_button clear-button'>Clear</button>
   </div>
   <div id='options-menu' class='options-menu'></div>
 </div>
@@ -48,7 +46,7 @@ const thirdSection = allRows.slice(8, 13)
     margin: 0 auto;
     border-collapse: separate;
     border-spacing: 0;
-    border: 2px solid var(--color-2);
+    border: 2px solid var(--color-border);
     background-clip: padding-box;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -57,7 +55,7 @@ const thirdSection = allRows.slice(8, 13)
 
   :global(th),
   :global(td) {
-    border: 1px solid var(--color-2);
+    border: 1px solid var(--color-border);
     padding: 2px;
     text-align: center;
     height: 35px;
@@ -102,12 +100,16 @@ const thirdSection = allRows.slice(8, 13)
   .buttons {
     display: flex;
     justify-content: space-between;
-    padding: 20px;
+    padding: 5px 10px;
     align-items: center;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+
+    button {
+      width: 130px;
+    }
   }
 
   #menu-wrapper {
@@ -136,9 +138,9 @@ const thirdSection = allRows.slice(8, 13)
 
     .clear-button {
       width: 100%;
-      height: 55px;
+      height: 45px;
+      font-weight: normal;
       padding: 0;
-      font-size: 18px;
       background-color: var(--color-5);
       color: var(--color-text);
       border: 1px solid var(--color-1);
@@ -175,20 +177,47 @@ const thirdSection = allRows.slice(8, 13)
       justify-content: space-around;
     }
   }
+
+  :global(.selected-row),
+  :global(.selected-column) {
+    background-color: rgba(219, 27, 255, 0.25) !important;
+  }
+
+  :global(.not-allowed) {
+    background-color: rgba(255, 0, 0, 0.8) !important;
+  }
 </style>
 
 <script>
   import type { RowType } from '@/types'
-  import { fieldOptions } from '@/config'
+  import { fieldOptions, allRows } from '@/config'
+  import { initPersistenceHelpers } from '@/helpers/persistenceHelpers'
+  import { saveBoardState } from '@/helpers/persistenceHelpers'
+  import { clearBoardState } from '@/helpers/persistenceHelpers'
+  import { initHighlightHelpers, clearHighlightedCells } from '@/helpers/highlightHelpers'
+
+  const board = document.querySelector<HTMLElement>('.jamb-board')
+  const { code } = board!.dataset
+
+  initPersistenceHelpers(updateSums)
+  initHighlightHelpers()
 
   const allCells = document.querySelectorAll<HTMLElement>('.cell')
 
   allCells.forEach(cell => {
     cell.addEventListener('click', function () {
-      const row = cell.getAttribute('data-row')
+      const { row } = cell.dataset
       if (row) {
-        showOptions(cell, row as RowType)
+        if (isAllowed(cell)) {
+          showOptions(cell, row as RowType)
+        } else {
+          cell.classList.add('not-allowed')
+          setTimeout(() => {
+            cell.classList.remove('not-allowed')
+          }, 200)
+        }
       }
+      clearHighlightedCells()
     })
   })
 
@@ -216,12 +245,16 @@ const thirdSection = allRows.slice(8, 13)
 
     closeMenu()
     menu!.innerHTML = ''
-    ;(fieldOptions[row] || []).forEach(value => {
+    const options = fieldOptions[row]
+    const isMColumn = cell.classList.contains('column-M')
+    const isMinRow = cell.classList.contains('row-min')
+    const selectArr = isMColumn ? (isMinRow ? [options[0]] : [options.at(-1)]) : options
+    selectArr.forEach(value => {
       const item = document.createElement('div')
       item.className = 'option-item'
-      item.textContent = value.toString()
+      item.textContent = value!.toString()
       item.onclick = function (event) {
-        selectOption(value.toString())
+        selectOption(value!.toString())
         event.stopPropagation()
       }
       menu!.appendChild(item)
@@ -245,21 +278,162 @@ const thirdSection = allRows.slice(8, 13)
     if (!currentCell) return
     currentCell.textContent = ''
     clearCurrentCell()
-    if (typeof saveBoardState === 'function') {
-      saveBoardState()
-    }
+    if (code) saveBoardState(code)
   }
 
   function selectOption(value: string) {
     if (currentCell) {
-      currentCell.textContent = value === 'x' ? '' : value
+      currentCell.textContent = value
+      updateMaxColumnIfNeeded(currentCell, value)
       closeMenu()
       updateSums()
-      if (typeof saveBoardState === 'function') {
-        saveBoardState()
-      }
+      if (code) saveBoardState(code)
     }
     clearCurrentCell()
+  }
+
+  function isAllowed(cell: HTMLElement) {
+    const classTokens = cell.className.split(/\s+/)
+    const colToken = classTokens.find(c => c.startsWith('column-'))
+    const rowToken = classTokens.find(r => r.startsWith('row-'))
+    if (!colToken || !rowToken) return true
+
+    const column = colToken.replace('column-', '')
+    const row = rowToken.replace('row-', '') as RowType
+
+    // Always allow for free and other unconstrained columns
+    if (['free', 'N', 'R', 'D', 'O', 'M'].includes(column)) return true
+
+    // If already filled, allow interaction (user can clear/change)
+    const currentFilled = (cell.textContent || '').trim() !== ''
+    if (currentFilled) return true
+
+    const currentIndex = allRows.indexOf(row)
+    const maxIndex = allRows.indexOf('max')
+    const minIndex = allRows.indexOf('min')
+
+    const getCellAt = (rowName: string) => document.querySelector<HTMLElement>(`.cell.column-${column}.row-${rowName}`)
+    const isFilledAt = (rowName: string) => {
+      const c = getCellAt(rowName)
+      return !!c && (c.textContent || '').trim() !== ''
+    }
+
+    if (column === 'down') {
+      // First empty from top is allowed
+      for (let i = 0; i < allRows.length; i++) {
+        const r = allRows[i]
+        const c = getCellAt(r)
+        if (!c) continue
+        if ((c.textContent || '').trim() === '') {
+          return i === currentIndex
+        }
+      }
+      return false
+    }
+
+    if (column === 'up') {
+      // First empty from bottom is allowed
+      for (let i = allRows.length - 1; i >= 0; i--) {
+        const r = allRows[i]
+        const c = getCellAt(r)
+        if (!c) continue
+        if ((c.textContent || '').trim() === '') {
+          return i === currentIndex
+        }
+      }
+      return false
+    }
+
+    if (column === 'min-max') {
+      // Two segments: top..max (filled upward starting from max), and min..bottom (filled downward starting from min)
+      const maxFilled = isFilledAt('max')
+      const minFilled = isFilledAt('min')
+
+      if (currentIndex < maxIndex) {
+        // Above max: can fill only after max is filled, moving upward from max
+        if (!maxFilled) return row === 'max' // allow selecting max itself when empty
+        for (let i = maxIndex - 1; i >= 0; i--) {
+          const r = allRows[i]
+          const c = getCellAt(r)
+          if (!c) continue
+          if ((c.textContent || '').trim() === '') {
+            return i === currentIndex
+          }
+        }
+        return false
+      }
+
+      if (currentIndex === maxIndex) {
+        // max itself is allowed if empty
+        return !maxFilled
+      }
+
+      if (currentIndex === minIndex) {
+        // min itself is allowed if empty
+        return !minFilled
+      }
+
+      if (currentIndex > minIndex) {
+        // Below min: can fill only after min is filled, moving downward from min
+        if (!minFilled) return row === 'min' // allow selecting min itself when empty
+        for (let i = minIndex + 1; i < allRows.length; i++) {
+          const r = allRows[i]
+          const c = getCellAt(r)
+          if (!c) continue
+          if ((c.textContent || '').trim() === '') {
+            return i === currentIndex
+          }
+        }
+        return false
+      }
+
+      // Between max and min (shouldn't happen for this board layout), disallow
+      return false
+    }
+
+    if (column === 'top-bottom') {
+      // Two segments: top to max (filled downward from top), and min to bottom
+      if (currentIndex <= maxIndex) {
+        for (let i = 0; i <= maxIndex; i++) {
+          const r = allRows[i]
+          const c = getCellAt(r)
+          if (!c) continue
+          if ((c.textContent || '').trim() === '') {
+            return i === currentIndex
+          }
+        }
+        return false
+      }
+
+      if (currentIndex >= minIndex) {
+        for (let i = allRows.length - 1; i >= minIndex; i--) {
+          const r = allRows[i]
+          const c = getCellAt(r)
+          if (!c) continue
+          if ((c.textContent || '').trim() === '') {
+            return i === currentIndex
+          }
+        }
+        return false
+      }
+
+      return false
+    }
+
+    // Fallback: allow
+    return true
+  }
+
+  function updateMaxColumnIfNeeded(cell: HTMLElement, value: string) {
+    const cellClasses = cell.className.split(' ')
+    const row = cellClasses.find(className => className.startsWith('row-'))!.replace('row-', '')
+    const options = fieldOptions[row as RowType]
+    const maxValue = row === 'min' ? options[0] : options[options.length - 1]
+
+    if (maxValue === Number(value)) {
+      const maxCell = document.querySelector(`.cell.column-M.row-${row}`)
+      maxCell!.textContent = value
+    }
   }
 
   function closeMenu() {
@@ -403,10 +577,7 @@ const thirdSection = allRows.slice(8, 13)
 
       // Reset grand total
       document.getElementById('grand-total')!.innerHTML = '0'
-
-      if (typeof clearBoardState === 'function') {
-        clearBoardState()
-      }
+      if (code) clearBoardState(code)
     }
   }
 
@@ -414,82 +585,10 @@ const thirdSection = allRows.slice(8, 13)
     const grandTotal = document.getElementById('grand-total')
     const isVisible = grandTotal!.style.visibility === 'visible'
     grandTotal!.style.visibility = isVisible ? 'hidden' : 'visible'
-    document.getElementById('toggle-total')!.textContent = isVisible ? 'SHOW TOTAL' : 'HIDE TOTAL'
+    document.getElementById('toggle-total')!.textContent = isVisible ? 'Show Total' : 'Hide Total'
   }
 
-  // -------------------- Persistence --------------------
-  const board = document.querySelector<HTMLElement>('.jamb-board')
-  const { code } = board!.dataset
-  const STORAGE_KEY = `jamb-board-state-${code}`
-
-  function assignCellPositions() {
-    const cells = document.querySelectorAll<HTMLElement>('.cell')
-    cells.forEach((cell, index) => {
-      cell.dataset.pos = String(index)
-    })
-  }
-
-  function saveBoardState() {
-    try {
-      const cells = document.querySelectorAll<HTMLElement>('.cell')
-      const data: Record<string, string> = {}
-      cells.forEach(cell => {
-        const pos = cell.dataset.pos
-        if (!pos) return
-        const value = (cell.textContent || '').trim()
-        if (value !== '') {
-          data[pos] = value
-        }
-      })
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cells: data }))
-    } catch (e) {
-      // Fail silently; persistence shouldn't break gameplay
-      console.error('Failed to save board state', e)
-    }
-  }
-
-  function loadBoardState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const parsed = raw ? JSON.parse(raw) : null
-      const cells = document.querySelectorAll<HTMLElement>('.cell')
-      // Clear everything first
-      cells.forEach(cell => {
-        cell.textContent = ''
-      })
-      if (parsed && parsed.cells) {
-        cells.forEach(cell => {
-          const pos = cell.dataset.pos
-          if (pos && parsed.cells[pos] !== undefined) {
-            cell.textContent = String(parsed.cells[pos])
-          }
-        })
-      }
-    } catch (e) {
-      console.warn('Failed to load board state; clearing it', e)
-      clearBoardState()
-    }
-  }
-
-  function clearBoardState() {
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch (e) {
-      console.error('Failed to clear board state', e)
-    }
-  }
-
-  // Initialize persistence on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      assignCellPositions()
-      loadBoardState()
-      updateSums()
-    })
-  } else {
-    // Document already loaded
-    assignCellPositions()
-    loadBoardState()
-    updateSums()
+  function endGame() {
+    // TODO implement
   }
 </script>

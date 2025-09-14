@@ -16,7 +16,11 @@ const { columns } = Astro.props
     {
       columns.map(column => {
         const icon = columnIconMapping[column]
-        return <th>{icon ? <Icon icon={icon} /> : column}</th>
+        return (
+          <th class={`header-cell column-${column}`} data-column={column}>
+            {icon ? <Icon icon={icon} /> : column}
+          </th>
+        )
       })
     }
   </tr>

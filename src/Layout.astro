@@ -1,0 +1,137 @@
+---
+interface Props {
+  code?: string
+}
+
+const isHome = Astro.url.pathname === '/'
+const isHistory = Astro.url.pathname === '/history'
+const { code } = Astro.props
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel='icon' href='/assets/fav-light.svg' media='(prefers-color-scheme: light)' />
+    <link rel='icon' href='/assets/fav-dark.svg' media='(prefers-color-scheme: dark)' />
+    <link rel='manifest' href='/manifest.webmanifest' />
+    <title>Jamb</title>
+    <meta name='theme-color' content='#67999c' />
+    <style is:global>
+      @import './global.css';
+    </style>
+  </head>
+  <body>
+    <header>
+      {!isHome ? <a href='/' class='home-link' /> : null}
+      {isHistory ? <button class='_button clear-history'>Clear History</button> : <a href='/history' class='history-link' />}
+      {code ? <span class='code'>code: {code.toUpperCase()}</span> : null}
+      <button class='_button color-mode'></button>
+    </header>
+    <slot />
+  </body>
+</html>
+
+<style>
+  body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-5);
+  }
+
+  header {
+    height: 40px;
+    background-color: var(--color-2);
+    padding: 2px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 20px;
+
+    @media (max-width: 400px) {
+      margin-bottom: 10px;
+    }
+
+    a {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .home-link,
+  .history-link,
+  .clear-history {
+    margin-right: 20px;
+  }
+
+  .code {
+    font-weight: bold;
+    color: var(--color-white);
+    margin: auto;
+  }
+
+  .home-link {
+    text-decoration: none;
+    font-size: 40px;
+    color: var(--color-white);
+  }
+
+  .color-mode {
+    width: auto;
+    height: auto;
+    padding: 0;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0;
+    margin-left: auto;
+  }
+</style>
+
+<script is:inline>
+  // no-flash on load
+  const lightColor = '#67999c'
+  const darkColor = '#262626'
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+  const colorMode = localStorage.getItem('color-mode') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-mode' : 'light-mode')
+
+  if (colorMode === 'dark-mode') {
+    metaThemeColor.setAttribute('content', darkColor)
+  } else {
+    metaThemeColor.setAttribute('content', lightColor)
+  }
+
+  document.body.classList.add(colorMode)
+</script>
+
+<script>
+  import { initColorModeHandlers } from '@/helpers/colorModeHelpers'
+  import { querySelector } from '@/helpers/helpers'
+  import { homeIcon, historyIcon } from '@/components/headerIcons'
+  import { clearHistory } from '@/helpers/historyHelpers'
+  import { initScreenLock } from './helpers/screenLockHelpers'
+
+  const homeLink = querySelector('.home-link', true)
+  const historyLink = querySelector('.history-link', true)
+  const clearHistoryButton = querySelector('.clear-history', true)
+
+  if (homeLink) homeLink.innerHTML = homeIcon
+  if (historyLink) historyLink.innerHTML = historyIcon
+
+  initColorModeHandlers()
+  initScreenLock()
+
+  clearHistoryButton?.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to clear the history?')) return
+    clearHistory()
+    location.reload()
+  })
+</script>

@@ -11,8 +11,8 @@ const { sectionNumber } = Astro.props
 <tr class={`sum${sectionNumber}`}>
   <td class='category sum'>∑<sup>{sectionNumber}</sup></td>
   {
-    allColumns.map(() => {
-      return <td class='sum' />
+    allColumns.map(column => {
+      return <td class={`sum column-${column}`} />
     })
   }
 </tr>

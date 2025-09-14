@@ -1,8 +1,8 @@
 ---
-import MainLayout from '@/layouts/MainLayout.astro'
+import Layout from '@/Layout.astro'
 ---
 
-<MainLayout>
+<Layout>
   <div>
     <form>
       <label class='username-wrapper'>
@@ -22,8 +22,7 @@ import MainLayout from '@/layouts/MainLayout.astro'
     <button class='_button start-game' disabled>Start game</button>
     <button class='_button join-game' disabled>Join game</button>
   </div>
-  <div class='choose-columns'></div>
-</MainLayout>
+</Layout>
 
 <style lang='scss'>
   div {
@@ -78,68 +77,16 @@ import MainLayout from '@/layouts/MainLayout.astro'
   .hide {
     display: none;
   }
-
-  /* implementation needed */
-  .choose-columns {
-    display: none;
-  }
 </style>
 
 <script>
-  import { initUsernameHandlers, getUsername } from '@/helpers/usernameHelpers'
-  import { apiCall, errorIn } from '@/helpers/apiHelpers'
-  import { allColumns } from '@/config'
+  import { initUsernameHandlers } from '@/helpers/usernameHelpers'
+  import { initButtonHandlers } from '@/helpers/buttonHelpers'
+  import { querySelector } from '@/helpers/helpers'
 
-  const startGameButton = document.querySelector<HTMLElement>('.start-game')
-  const joinGameButton = document.querySelector<HTMLElement>('.join-game')
+  const startGameButton = querySelector('.start-game')
+  const joinGameButton = querySelector('.join-game')
 
+  initButtonHandlers(startGameButton, joinGameButton)
   initUsernameHandlers(startGameButton, joinGameButton)
-
-  startGameButton?.addEventListener('click', async () => {
-    const username = getUsername()
-    if (!username) {
-      alert('Please enter a username first')
-      return
-    }
-
-    const code = randomString(6)
-    // TODO: select a columns you want to play
-    const res = await apiCall('new-game', { creator: username, code, columns: allColumns })
-
-    if (errorIn(res)) {
-      alert(res.error)
-      return
-    }
-
-    window.location.href = `/game/${code}`
-  })
-
-  joinGameButton?.addEventListener('click', async () => {
-    const gameCode = prompt('Enter game code')?.toLowerCase()
-    if (!gameCode || gameCode.length !== 6) {
-      // check if game code is valid
-      alert('Invalid game code. Please enter a valid game code.')
-      return
-    }
-
-    const username = getUsername()
-    if (!username) {
-      alert('Please enter a username first')
-      return
-    }
-
-    const res = await apiCall('join-game', { code: gameCode, player: username })
-    if (errorIn(res)) {
-      alert(res.error)
-      return
-    }
-
-    window.location.href = `/game/${gameCode}`
-  })
-
-  function randomString(length: number) {
-    return Math.random()
-      .toString(36)
-      .substring(2, length + 2)
-  }
 </script>

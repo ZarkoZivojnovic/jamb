@@ -6,29 +6,42 @@ body {
   --color-5: #f8faff;
   --color-text: #09121d;
   --color-white: #fff;
+  --color-border: #80b1b4;
+  --color-highlight: rgba(63, 20, 159, 0.2);
 
-  --font-xs: 10px;
+  --font-xs: 12px;
   --font-s: 14px;
   --font-m: 16px;
   --font-l: 18px;
+  --font-xl: 20px;
 
-  @media (prefers-color-scheme: dark) {
+  &.dark-mode {
     --color-1: #dbdbdb;
     --color-2: #262626;
-    --color-3: #1d1d1d;
-    --color-4: #1f1f1f;
+    --color-3: #303030;
+    --color-4: #292929;
     --color-5: #181818;
     --color-text: #fafdff;
-    --color-white: #fff;
+    --color-border: #6a6a6a;
+    --color-highlight: rgba(219, 27, 255, 0.25);
   }
 
   font-family: 'Roboto', sans-serif;
+  overscroll-behavior-y: none;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box !important;
+  --webkit-tap-highlight-color: transparent;
+  --webkit-touch-callout: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  transition:
+    color 0.2s ease-in-out,
+    background-color 0.2s ease-in-out;
 }
 
 /* Prevent focus rings from showing on tap for touch devices while keeping keyboard focus on desktop */
@@ -36,6 +49,8 @@ body {
   *:focus,
   *:focus-visible {
     outline: none !important;
+    --webkit-tap-highlight-color: transparent;
+    --webkit-touch-callout: none;
   }
 }
 
@@ -46,17 +61,16 @@ button {
 
 ._button {
   width: 150px;
-  height: 50px;
+  height: 40px;
   padding: 6px 10px;
   background-color: var(--color-2);
   color: var(--color-white);
-  font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
+  letter-spacing: 2px;
   text-align: center;
 }
 
 ._button:disabled {
-  background-color: var(--color-4);
-  color: var(--color-3);
+  opacity: 0.4;
   cursor: auto;
 }
