@@ -1,4 +1,6 @@
 ---
+import Icon from '@/components/Icon.astro'
+
 interface Props {
   code?: string
 }
@@ -23,10 +25,27 @@ const { code } = Astro.props
   </head>
   <body>
     <header>
-      {!isHome ? <a href='/' class='home-link' /> : null}
-      {isHistory ? <button class='_button clear-history'>Clear History</button> : <a href='/history' class='history-link' />}
+      {
+        !isHome ? (
+          <a href='/' class='home-link'>
+            <Icon icon='home' />
+          </a>
+        ) : null
+      }
+      {
+        isHistory ? (
+          <button class='_button clear-history'>Clear History</button>
+        ) : (
+          <a href='/history' class='history-link'>
+            <Icon icon='history' />
+          </a>
+        )
+      }
       {code ? <span class='code'>code: {code.toUpperCase()}</span> : null}
-      <button class='_button color-mode'></button>
+      <button class='_button color-mode'>
+        <Icon icon='sun' class='sun-icon' />
+        <Icon icon='moon' class='moon-icon' />
+      </button>
     </header>
     <slot />
   </body>
@@ -94,6 +113,20 @@ const { code } = Astro.props
     margin-right: 0;
     margin-left: auto;
   }
+
+  .sun-icon {
+    display: none;
+  }
+
+  :global(.dark-mode) {
+    .moon-icon {
+      display: none;
+    }
+
+    .sun-icon {
+      display: block;
+    }
+  }
 </style>
 
 <script is:inline>
@@ -115,16 +148,10 @@ const { code } = Astro.props
 <script>
   import { initColorModeHandlers } from '@/helpers/colorModeHelpers'
   import { querySelector } from '@/helpers/helpers'
-  import { homeIcon, historyIcon } from '@/components/headerIcons'
   import { clearHistory } from '@/helpers/historyHelpers'
   import { initScreenLock } from './helpers/screenLockHelpers'
 
-  const homeLink = querySelector('.home-link', true)
-  const historyLink = querySelector('.history-link', true)
   const clearHistoryButton = querySelector('.clear-history', true)
-
-  if (homeLink) homeLink.innerHTML = homeIcon
-  if (historyLink) historyLink.innerHTML = historyIcon
 
   initColorModeHandlers()
   initScreenLock()

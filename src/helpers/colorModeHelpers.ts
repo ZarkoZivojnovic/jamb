@@ -1,4 +1,3 @@
-import { moonIcon, sunIcon } from '@/components/headerIcons'
 import { querySelector } from '@/helpers/helpers'
 
 const lightColor = '#67999c'
@@ -8,8 +7,6 @@ export function initColorModeHandlers() {
   const colorModeButton = querySelector('.color-mode')
   const colorMode = getColorMode()
   const metaThemeColor = querySelector('meta[name="theme-color"]')
-
-  colorModeButton.innerHTML = colorMode === 'dark-mode' ? sunIcon : moonIcon
 
   if (colorMode === 'dark-mode') {
     metaThemeColor.setAttribute('content', darkColor)
@@ -25,18 +22,15 @@ export function initColorModeHandlers() {
 
 export function changeColorMode(colorMode: 'dark-mode' | 'light-mode') {
   const metaThemeColor = querySelector('meta[name="theme-color"]')
-  const colorModeButton = querySelector('.color-mode')
 
   if (colorMode === 'dark-mode') {
     metaThemeColor.setAttribute('content', darkColor)
     localStorage.setItem('color-mode', 'dark-mode')
     document.body.classList.add('dark-mode')
-    colorModeButton.innerHTML = sunIcon
   } else {
     metaThemeColor.setAttribute('content', lightColor)
     localStorage.setItem('color-mode', 'light-mode')
     document.body.classList.remove('dark-mode')
-    colorModeButton.innerHTML = moonIcon
   }
 }
 

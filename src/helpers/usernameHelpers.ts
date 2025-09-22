@@ -20,8 +20,9 @@ export function initUsernameHandlers(startGameButton: HTMLElement, joinGameButto
   const cancelUsernameButton = querySelector('.cancel-username')
   const editUsernameButton = querySelector('.edit-username')
   const removeUsernameButton = querySelector('.remove-username')
-  const usernameInfo = querySelector('.username-info')
   const usernamePreview = querySelector('.username-preview')
+  const usernameWrapper = querySelector('.username-wrapper')
+  const usernameForm = querySelector('.username-form')
   const usernameValue = getUsername()
 
   if (usernameValue) {
@@ -74,10 +75,9 @@ export function initUsernameHandlers(startGameButton: HTMLElement, joinGameButto
   })
 
   function toggleUsernameInput(action: 'show' | 'hide') {
-    usernameInput.classList.toggle('hide', action === 'hide')
-    saveUsernameButton.classList.toggle('hide', action === 'hide')
-    cancelUsernameButton.classList.toggle('hide', action === 'hide')
+    usernameForm.classList.toggle('hide', action === 'hide')
     const nicknameValue = getUsername()
+
     if (!nicknameValue) {
       cancelUsernameButton.setAttribute('disabled', 'disabled')
       startGameButton.setAttribute('disabled', 'disabled')
@@ -90,9 +90,6 @@ export function initUsernameHandlers(startGameButton: HTMLElement, joinGameButto
   }
 
   function toggleUsernamePreview(action: 'show' | 'hide') {
-    usernamePreview.classList.toggle('hide', action === 'hide')
-    editUsernameButton.classList.toggle('hide', action === 'hide')
-    usernameInfo.classList.toggle('hide', action === 'hide')
-    removeUsernameButton.classList.toggle('hide', action === 'hide')
+    usernameWrapper.classList.toggle('hide', action === 'hide')
   }
 }

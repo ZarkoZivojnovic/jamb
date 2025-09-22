@@ -4,18 +4,20 @@ import Layout from '@/Layout.astro'
 
 <Layout>
   <div>
-    <form>
-      <label class='username-wrapper'>
+    <form class='username-form hide'>
+      <label>
         <input name='username' type='text' placeholder='username' minlength='3' maxlength='15' />
         <button class='_button save-username' type='submit'>Save</button>
         <button class='_button cancel-username' type='reset'>Cancel</button>
       </label>
     </form>
-    <span class='username-info'>Your username:</span>
-    <span class='username-preview'></span>
-    <div class='username-actions'>
-      <button class='edit-username'>Edit</button>
-      <button class='remove-username'>Remove</button>
+    <div class='username-wrapper hide'>
+      <span class='username-info'>Your username:</span>
+      <span class='username-preview'></span>
+      <div class='username-actions'>
+        <button class='edit-username'>Edit</button>
+        <button class='remove-username'>Remove</button>
+      </div>
     </div>
   </div>
   <div class='game-actions'>
