@@ -1,4 +1,5 @@
-import { randomString } from '@/helpers/helpers'
+import { makeApiCall } from '@/helpers/apiHelpers.ts'
+import { errorIn, randomString } from '@/helpers/helpers'
 import { getUsername } from '@/helpers/usernameHelpers'
 
 export function initButtonHandlers(startGameButton: HTMLElement, joinGameButton: HTMLElement) {
@@ -10,7 +11,13 @@ export function initButtonHandlers(startGameButton: HTMLElement, joinGameButton:
     }
 
     const code = randomString(6)
-    window.location.href = `/game/${code}`
+
+    const res = await makeApiCall('/create', { code, creator: username })
+    if (!errorIn(res)) {
+      window.location.href = `/game/${code}`
+    } else {
+      console.log('Error: ', res)
+    }
   })
 
   joinGameButton.addEventListener('click', async () => {
@@ -26,6 +33,11 @@ export function initButtonHandlers(startGameButton: HTMLElement, joinGameButton:
       return
     }
 
-    window.location.href = `/game/${gameCode}`
+    const res = await makeApiCall('/join', { code: gameCode, player: username })
+    if (!errorIn(res)) {
+      window.location.href = `/game/${gameCode}`
+    } else {
+      console.log('Error: ', res)
+    }
   })
 }
