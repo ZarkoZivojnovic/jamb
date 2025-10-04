@@ -21,4 +21,4 @@ export type ApiResponse = Err | Success
 
 export type CreateGamePayload = { code: string; creator: string }
 export type JoinGamePayload = { code: string; player: string }
-export type EndGamePayload = { code: string; player: string, result: number }
+export type EndGamePayload = { code: string; player: string; result: number }

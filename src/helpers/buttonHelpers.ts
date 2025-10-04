@@ -1,5 +1,5 @@
 import { makeApiCall } from '@/helpers/apiHelpers.ts'
-import {errorIn, randomString} from '@/helpers/helpers'
+import { errorIn, randomString } from '@/helpers/helpers'
 import { getUsername } from '@/helpers/usernameHelpers'
 
 export function initButtonHandlers(startGameButton: HTMLElement, joinGameButton: HTMLElement) {

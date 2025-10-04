@@ -1,6 +1,6 @@
 import { updatePlayerResult } from '@/db/realtimeDb.ts'
+import type { EndGamePayload } from '@/types.ts'
 import type { APIRoute } from 'astro'
-import type {EndGamePayload} from "@/types.ts";
 
 export const POST: APIRoute = async ({ request }) => {
   try {

@@ -1,4 +1,4 @@
-import type {ApiResponse, Success} from "@/types.ts";
+import type { ApiResponse, Success } from '@/types.ts'
 
 export function randomString(length: number) {
   return Math.random()
