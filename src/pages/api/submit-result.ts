@@ -1,9 +1,10 @@
 import { updatePlayerResult } from '@/db/realtimeDb.ts'
 import type { APIRoute } from 'astro'
+import type {EndGamePayload} from "@/types.ts";
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json()
+    const body: EndGamePayload = await request.json()
     const { code, player, result } = body
     if (!code || !player || !result) {
       return new Response('Invalid JSON', { status: 400 })

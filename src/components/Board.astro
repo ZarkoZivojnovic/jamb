@@ -32,6 +32,7 @@ const thirdSection = allRows.slice(8, 13)
 <div class='buttons'>
   <button class='_button' id='reset-board'>Reset</button>
   <button class='_button' id='toggle-total'>Show Total</button>
+  <button class='_button' id='end-game'>End Game</button>
 </div>
 
 <div id='menu-wrapper'>
@@ -195,6 +196,8 @@ const thirdSection = allRows.slice(8, 13)
   import { saveBoardState } from '@/helpers/persistenceHelpers'
   import { clearBoardState } from '@/helpers/persistenceHelpers'
   import { initHighlightHelpers, clearHighlightedCells } from '@/helpers/highlightHelpers'
+    import {makeApiCall} from "@/helpers/apiHelpers.ts";
+    import {getUsername} from "@/helpers/usernameHelpers.ts";
 
   const board = document.querySelector<HTMLElement>('.jamb-board')
   const { code } = board!.dataset
@@ -229,6 +232,16 @@ const thirdSection = allRows.slice(8, 13)
 
   const toggleTotalButton = document.getElementById('toggle-total')
   toggleTotalButton?.addEventListener('click', toggleTotal)
+
+  const endGameButton = document.getElementById('end-game')
+  endGameButton?.addEventListener('click', ()=> {
+    // TODO: make this work
+    const res = makeApiCall('/submit-result', {
+      code: code,
+      result: 111,
+      player: getUsername()
+    })
+  })
 
   let currentCell: HTMLElement | null = null
 
