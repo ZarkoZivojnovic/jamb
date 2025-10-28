@@ -22,7 +22,7 @@ import Layout from '@/Layout.astro'
   </div>
   <div class='game-actions'>
     <button class='_button start-game' disabled>Start game</button>
-    <button class='_button join-game' disabled>Join game</button>
+    <button class='join-game' disabled>Join game</button>
   </div>
 </Layout>
 
@@ -73,7 +73,12 @@ import Layout from '@/Layout.astro'
   }
 
   .game-actions {
-    flex-direction: row;
+    flex-direction: column;
+  }
+
+  .join-game {
+    font-size: var(--font-s);
+    border-bottom: 1px solid var(--color-text);
   }
 
   .hide {
